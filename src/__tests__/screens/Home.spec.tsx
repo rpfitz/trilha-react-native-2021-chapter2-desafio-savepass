@@ -1,15 +1,16 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
-import { NavigationContext, NavigationProp } from "@react-navigation/native";
 
 import { Home } from '../../screens/Home';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const navContext = {
-  isFocused: () => true,
-  // addListener returns an unscubscribe function.
-  addListener: jest.fn(() => jest.fn())
-} as unknown as NavigationProp<Record<string, object>, string, any, any, {}>;
+jest.mock('@react-navigation/native', () => ({
+  useFocusEffect: jest.fn((callback) => callback()),
+  useNavigation: () => ({
+    navigate: jest.fn(),
+    goBack: jest.fn()
+  })
+}));
 
 describe('Home', () => {
   it('should be able to get data on async storage', async () => {
@@ -34,13 +35,7 @@ describe('Home', () => {
       )
 
     const { findByText, getByText } = render(
-      <Home />, { 
-        wrapper: ({ children }) => (
-          <NavigationContext.Provider value={navContext}>
-            { children }
-          </NavigationContext.Provider>
-        )
-      }
+      <Home />
     );
 
     expect(await findByText('johndoe@example.com')).toBeTruthy()
@@ -76,13 +71,7 @@ describe('Home', () => {
       findByText,
       queryByText,
     } = render(
-      <Home />, {
-        wrapper: ({ children }) => (
-          <NavigationContext.Provider value={navContext}>
-            { children }
-          </NavigationContext.Provider>
-        )
-      }
+      <Home />
     );
 
     // Ensures first render is complete (act)
